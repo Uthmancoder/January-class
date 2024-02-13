@@ -53,7 +53,7 @@ const Login = async (req, res) => {
       res.status(400).send({
         message: "Account Does Not Exist, Try Creating one!",
         status: false,
-      }); 
+      });
     } else {
       const comparePassword = await bcrypt.compare(
         Password,
@@ -84,15 +84,32 @@ const Login = async (req, res) => {
 
 const EditAcc = async (req, res) => {
   const user = req.user;
-  console.log("userEmail : ", user.Email)
-  
+  console.log("userEmail : ", user.Email);
+
   console.log("User Trying To Edit Acc : ", user);
-    const { FullName, Email, Password } = req.body;
-    if (!FullName || !Email || !Password) {
-      res.status(400).send({ message: "All Fields are mandatory" });
-    } else {
-      res.status(200).send({ message: "Editing account" });
+
+  const { FullName, Email, Password } = req.body;
+  if (!FullName || !Email || !Password) {
+    res.status(400).send({ message: "All Fields are mandatory" });
+  } else {
+    try {
+      const hashPassword =  await bcrypt.hash(Password, 10);
+      const validateUser = await userModel.findOneAndUpdate(
+        { Email: user.Email },
+        { FullName, Email, Password : hashPassword },
+        { new: true }
+      );
+      if (validateUser) {
+        res
+          .status(200)
+          .send({ message: "Account Updated Successfully", status: "success" });
+      }else{
+        res.status(400).send({ message: "Unable to update account", status: "failed" });
+      }
+    } catch (error) {
+      res.status(500).send({ message: "Internal Server Error" });
     }
+  }
 };
 
 module.exports = { SignUp, Login, EditAcc };

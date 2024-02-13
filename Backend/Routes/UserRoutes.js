@@ -7,6 +7,6 @@ router.post("/sign-up", SignUp)
 router.post("/login", Login)
 // Private Route
 // router.post("/editAcc", verifyToken, editacc)
-router.post("/editProfile", VerifyToken, EditAcc)
+router.put("/editProfile", VerifyToken, EditAcc)
 module.exports = router
 

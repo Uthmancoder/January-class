@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 const VerifyToken = (req, res, next) => {
   let secretKey = process.env.SECRET_KEY;
   let token;
-  const authHeader = req.headers.authorization;
+  const authHeader =  req.headers.Authorization || req.headers.authorization;
+  // console.log("Auth Header:", authHeader)
   if (!authHeader) {
     res.status(400).send({ message: "Authorization not provided" });
   } else {
