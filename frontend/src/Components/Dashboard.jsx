@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
 const Dashboard = () => {
     const token = localStorage.getItem("token") || ""
@@ -20,8 +21,9 @@ const Dashboard = () => {
         }
     }
 
-    const handleEdit = ()=>{
-
+    const handleEdit = async () => {
+        navigate("/editProfile")
+        
     }
     return (
         <div>

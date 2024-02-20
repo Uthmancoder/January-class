@@ -1,6 +1,7 @@
 const userModel = require("../Models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const {sendMail, SendOtp} = require("../Config/mailer");
 
 const SignUp = async (req, res, next) => {
   const { FullName, Email, Password } = req.body;
@@ -26,6 +27,7 @@ const SignUp = async (req, res, next) => {
     });
 
     if (createUser) {
+      sendMail(FullName, Email);
       res.status(200).send({
         message: `Account Created Successfully for ${createUser.FullName}`,
         status: "success",
@@ -93,18 +95,20 @@ const EditAcc = async (req, res) => {
     res.status(400).send({ message: "All Fields are mandatory" });
   } else {
     try {
-      const hashPassword =  await bcrypt.hash(Password, 10);
+      const hashPassword = await bcrypt.hash(Password, 10);
       const validateUser = await userModel.findOneAndUpdate(
         { Email: user.Email },
-        { FullName, Email, Password : hashPassword },
+        { FullName, Email, Password: hashPassword },
         { new: true }
       );
       if (validateUser) {
         res
           .status(200)
           .send({ message: "Account Updated Successfully", status: "success" });
-      }else{
-        res.status(400).send({ message: "Unable to update account", status: "failed" });
+      } else {
+        res
+          .status(400)
+          .send({ message: "Unable to update account", status: "failed" });
       }
     } catch (error) {
       res.status(500).send({ message: "Internal Server Error" });
@@ -112,4 +116,33 @@ const EditAcc = async (req, res) => {
   }
 };
 
-module.exports = { SignUp, Login, EditAcc };
+const getCurrentUser = async (req, res) => {
+  const user = req.user;
+  try {
+    const fetchCurrentUser = await userModel.findOne({ Email: user.Email });
+    if (fetchCurrentUser) {
+      const userDetails = {
+        FullName: fetchCurrentUser.FullName,
+        Email: fetchCurrentUser.Email,
+      };
+      res.status(200).send({ message: "User userDetails", userDetails });
+    }
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+const getOtp = async () => {
+  const user = req.user;
+  try {
+    const getUser = await userModel.findOne({ Email: user.Email });
+    if(getUser){
+      const generateRandum =  Math.floor(Math.random() * 9999)
+console.log("Random Number : ", generateRandum)
+SendOtp(generateRandum, getUser.FullName, getUser.Email)
+    }
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+module.exports = { SignUp, Login, EditAcc, getCurrentUser, getOtp };
